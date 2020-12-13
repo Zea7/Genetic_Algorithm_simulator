@@ -1,2 +1,2 @@
 # Genetic_Algorithm_simulator
-Mutualism simulator
+Genetic_Algorithm_simulator
