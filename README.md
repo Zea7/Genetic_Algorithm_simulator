@@ -1,2 +1,2 @@
-# Mutualism_simulator
+# Genetic_Algorithm_simulator
 Mutualism simulator
