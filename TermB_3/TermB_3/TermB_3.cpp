@@ -18,8 +18,8 @@ struct Creature {
     Creature* next;
 };
 
-class Life {
-public:
+class Life {                                    //한 칸에 있는 creature들을 linked-list의 형태로 저장하기 위해
+public:                                         //creature를 node로 가지는 linked-list class, Life를 정의
     int length=0;
     Creature* head = NULL;
     Creature* tail = NULL;
@@ -27,7 +27,7 @@ public:
     Creature del(int n);
 };
 
-void Life::add(Creature* n) {
+void Life::add(Creature* n) {                   //Creature 추가하는 함수
     if (this->length == 0) {
         this->head = n;
         this->tail = this->head;
@@ -39,7 +39,7 @@ void Life::add(Creature* n) {
     this->length++;
 }
 
-Creature Life::del(int n) {
+Creature Life::del(int n) {                     //칸에 있는 creature들 중 n 번째로 칸에 들어온 creature를 제거하고, 이를 반환
     Creature* p = this->head;
     if (n == 1 && length == 1) {
         Creature q = *p;
@@ -64,7 +64,7 @@ Creature Life::del(int n) {
     
 }
 
-class Simulator {
+class Simulator {                       //Simulator class. 본 프로그램의 본체
 private:
     Life** life;                       //각 칸의 생물체들의 집합
     int** board;                       //생물체들이 살아갈 공간(정사각형)
@@ -74,7 +74,7 @@ private:
     int lives;                         //총 creature의 수
     int act;                           //진행한 시행의 수
     int f = 10;                        //최대 fly
-    int l = 5;                         //최대 lifespan
+    int l = 2;                         //최대 lifespan
     int bb = 2;                        //최대 baby
     int s = 1;                         //최대 stamina
     queue<pair<int, int>> q;           //Creature들이 존재하는 좌표값
@@ -87,7 +87,7 @@ public:
     void make_up();                     //시행마다 배열들을 정리
 };
 
-void Simulator::turn(int n) {
+void Simulator::turn(int n) {           //한번한번의 시행마다 할 수행을 정의한 함수. recursion의 형태로 정의되어있다.
     if (n == 0) return;
     act++;    
     int qs = q.size();
@@ -196,13 +196,28 @@ void Simulator::move(int x, int y) {
                     uniform_int_distribution<int> rl((aa->lifespan < h->lifespan ? aa->lifespan : h->lifespan), (aa->lifespan >= h->lifespan ? aa->lifespan : h->lifespan));
                     uniform_int_distribution<int> rb((aa->baby < h->baby ? aa->baby : h->baby), (aa->baby >= h->baby ? aa->baby : h->baby));
                     uniform_int_distribution<int> rs((aa->stamina < h->stamina ? aa->stamina : h->stamina), (aa->stamina >= h->stamina ? aa->stamina : h->stamina));
+                    uniform_int_distribution<int> rm(0, 10);
+                    uniform_int_distribution<int> rmf(1, this->f);
+                    uniform_int_distribution<int> rml(1, this->l);
+                    uniform_int_distribution<int> rmb(1, this->bb);
+                    uniform_int_distribution<int> rms(1, this->s);
                     for (int j = 0; j < h->baby; j++) {
                         Creature* z = new Creature();
-                        z->fly = rf(gen);
-                        z->lifespan = rl(gen);
-                        z->baby = rb(gen);
-                        z->stamina = rs(gen);
-                        z->hp = z->stamina;
+                        int mm = rm(gen);
+                        if (mm == 1) {
+                            z->fly = rmf(gen);
+                            z->lifespan = rml(gen);
+                            z->baby = rmb(gen);
+                            z->stamina = rms(gen);
+                            z->hp = z->stamina;
+                        }
+                        else {
+                            z->fly = rf(gen);
+                            z->lifespan = rl(gen);
+                            z->baby = rb(gen);
+                            z->stamina = rs(gen);
+                            z->hp = z->stamina;
+                        }
                         life[x_h][y_h].add(z);
                     }
                     q.push(pair<int, int>(x_h, y_h));
@@ -214,14 +229,29 @@ void Simulator::move(int x, int y) {
                     uniform_int_distribution<int> rl((aa->lifespan < h->lifespan ? aa->lifespan : h->lifespan), (aa->lifespan >= h->lifespan ? aa->lifespan : h->lifespan));
                     uniform_int_distribution<int> rb((aa->baby < h->baby ? aa->baby : h->baby), (aa->baby >= h->baby ? aa->baby : h->baby));
                     uniform_int_distribution<int> rs((aa->stamina < h->stamina ? aa->stamina : h->stamina), (aa->stamina >= h->stamina ? aa->stamina : h->stamina));
+                    uniform_int_distribution<int> rm(0, 10);
+                    uniform_int_distribution<int> rmf(1, this->f);
+                    uniform_int_distribution<int> rml(1, this->l);
+                    uniform_int_distribution<int> rmb(1, this->bb);
+                    uniform_int_distribution<int> rms(1, this->s);
                     for (int j = 0; j < h->baby; j++) {
                         Creature* z = new Creature();
-                        z->fly = rf(gen);
-                        z->lifespan = rl(gen);
-                        z->baby = rb(gen);
-                        z->stamina = rs(gen);
-                        z->hp = z->stamina;
-                        life[x_h][y_h].add(z); 
+                        int mm = rm(gen);
+                        if (mm == 1) {
+                            z->fly = rmf(gen);
+                            z->lifespan = rml(gen);
+                            z->baby = rmb(gen);
+                            z->stamina = rms(gen);
+                            z->hp = z->stamina;
+                        }
+                        else {
+                            z->fly = rf(gen);
+                            z->lifespan = rl(gen);
+                            z->baby = rb(gen);
+                            z->stamina = rs(gen);
+                            z->hp = z->stamina;
+                        }
+                        life[x_h][y_h].add(z);
                     }
                     q.push(pair<int, int>(x_h, y_h));
                 }
@@ -339,7 +369,7 @@ void Simulator::make_up() {
 }
 int main()
 {
-    int n=10, t, x=10;
+    int n=40, t, x=10;
     cout << "시작할 때의 Creature 수는?" << endl;
     cout << n << endl;
     cout << "총 함정의 개수는?" << endl;
