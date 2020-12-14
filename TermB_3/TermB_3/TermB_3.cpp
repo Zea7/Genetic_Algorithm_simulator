@@ -80,14 +80,15 @@ private:
     queue<pair<int, int>> q;           //Creature들이 존재하는 좌표값
 public:
     Simulator(int n, int t, int b);                   //생성자(n은 시작시 creature의 수, t는 함정의 수, b는 board 한 변의 길이
-    void turn(int n);                   //한 번의시뮬레이션 
-    void print_mean();                  //현재 생존해 있는 creature들의 status의 평균 출력
+    Simulator(int n, int t, int b, bool f);            //모든 기본 값을 변경하는 생성자.
+    void turn(int n, bool b);                   //한 번의시뮬레이션 
+    void print_mean(bool b);                  //현재 생존해 있는 creature들의 status의 평균 출력
     void move(int x, int y);            //(x,y) 좌표의 creature들이 1~fly 칸만큼 움직임.
     void print_status();                //디버깅용 함수
     void make_up();                     //시행마다 배열들을 정리
 };
 
-void Simulator::turn(int n) {           //한번한번의 시행마다 할 수행을 정의한 함수. recursion의 형태로 정의되어있다.
+void Simulator::turn(int n,bool b) {           //한번한번의 시행마다 할 수행을 정의한 함수. recursion의 형태로 정의되어있다.
     if (n == 0) return;
     act++;    
     int qs = q.size();
@@ -102,11 +103,11 @@ void Simulator::turn(int n) {           //한번한번의 시행마다 할 수�
     this->make_up();
     cout << "---------------------------" << endl;
     cout << this->act << "번째 시행 : " << endl;
-    this->print_mean();
+    this->print_mean(b);
     this->print_status();
     cout << "---------------------------" << endl;
     Sleep(2000);
-    this->turn(--n);
+    this->turn(--n,b);
 }
 
 void Simulator::print_status() {
@@ -269,8 +270,9 @@ void Simulator::move(int x, int y) {
     }
 }
 
-void Simulator::print_mean() {
+void Simulator::print_mean(bool t) {
     int f = 0, b = 0, l = 0, s = 0,x,y,qs=q.size();
+    if (t) cout << "최대 움직일 수 있는 칸    최대 자식의 수     남은 수명      현재 남은 체력" << endl;
     for (int i = 0; i < qs;i++) {
         pair<int, int> p = q.front();
         q.pop();
@@ -282,12 +284,13 @@ void Simulator::print_mean() {
         }
         check[x][y] = true;
         Creature* h = life[x][y].head;
+        
         for (int j = 0; j < life[x][y].length; j++) {
             f += h->fly;
             b += h->baby;
             l += h->lifespan;
             s += h->stamina;
-            cout << h->fly << " " << h->baby << " " << (h->lifespan-h->age) << " " << h->hp << endl;
+            if(t) cout << h->fly << " " << h->baby << " " << (h->lifespan-h->age) << " " << h->hp << endl;
             h = h->next;
         }
     }
@@ -317,19 +320,76 @@ Simulator::Simulator(int n, int t, int b) {
     for (int i = 0; i < b; i++) {
         this->trap[i] = new bool[b];
     }
-    cout << "Creature가 한 번에 최대로 움직일 수 있는 칸의 수는?" << endl;
-    cout << f << endl;
-    cout << "Creature의 수명은?" << endl;
-    cout << l << endl;
-    cout << "Creature가 한 번에 낳을 수 있는 최대 자식의 수는?" << endl;
-    cout << bb << endl;
-    cout << "Creature가 함정과 마주쳤을 때 버틸 수 있는 최대 횟수는?" << endl;
-    cout << s << endl;
     uniform_int_distribution<int> rf(1, f);
     uniform_int_distribution<int> rl(1, l);
     uniform_int_distribution<int> rb(1, bb);
     uniform_int_distribution<int> rs(1, s);
     uniform_int_distribution<int> rx(0, (b-1));
+    uniform_int_distribution<int> ry(0, (b - 1));
+    int x, y;
+    for (int i = 0; i < b; i++) {
+        for (int j = 0; j < b; j++) {
+            this->trap[i][j] = false;
+        }
+    }
+    for (int i = 0; i < t;) {
+        x = rx(gen);
+        y = ry(gen);
+        if (this->trap[x][y] == false) {
+            this->trap[x][y] = true;
+            i++;
+        }
+    }
+    for (int i = 0; i < n; i++) {
+        Creature* c = new Creature();
+        c->fly = rf(gen);
+        c->baby = rb(gen);
+        c->stamina = rs(gen);
+        c->hp = c->stamina;
+        c->lifespan = rl(gen);
+        x = rx(gen);
+        y = ry(gen);
+        this->life[x][y].add(c);
+        this->q.push(pair<int, int>(x, y));
+    }
+    this->make_up();
+}
+
+Simulator::Simulator(int n, int t, int b, bool p) {
+    this->lives = n;
+    this->x = b;
+    random_device rd;
+    mt19937 gen(rd());
+
+    this->life = new Life * [b];
+    for (int i = 0; i < b; i++) {
+        this->life[i] = new Life[b];
+    }
+    this->board = new int* [b];
+    for (int i = 0; i < b; i++) {
+        this->board[i] = new int[b];
+    }
+    this->check = new bool* [b];
+    for (int i = 0; i < b; i++) {
+        check[i] = new bool[b];
+    }
+    this->trap = new bool* [b];
+    for (int i = 0; i < b; i++) {
+        this->trap[i] = new bool[b];
+    }
+    cout << "Creature가 한 번에 최대로 움직일 수 있는 칸의 수는?" << endl;
+    cin >> this->f;
+    cout << "Creature의 수명은?" << endl;
+    cin >> this->l;
+    cout << "Creature가 한 번에 낳을 수 있는 최대 자식의 수는?" << endl;
+    cin >> this->bb;
+    cout << "Creature가 함정과 마주쳤을 때 버틸 수 있는 최대 횟수는?" << endl;
+    cin >> this->s;
+    uniform_int_distribution<int> rf(1, this->f);
+    uniform_int_distribution<int> rl(1, this->l);
+    uniform_int_distribution<int> rb(1, this->bb);
+    uniform_int_distribution<int> rs(1, this->s);
+    uniform_int_distribution<int> rx(0, (b - 1));
     uniform_int_distribution<int> ry(0, (b - 1));
     int x, y;
     for (int i = 0; i < b; i++) {
@@ -369,19 +429,33 @@ void Simulator::make_up() {
 }
 int main()
 {
-    int n=40, t, x=10;
-    cout << "시작할 때의 Creature 수는?" << endl;
-    cout << n << endl;
+    int n=40, t, x=10,b=false;
+    char a;
     cout << "총 함정의 개수는?" << endl;
     cin >> t;
-    cout << "Creature들이 살아갈 터전의 한변의 길이는?" << endl;
-    cout << x << endl;
+    Simulator s = Simulator(n, t, x);
+    cout << "기본 설정 값(모든 status의 최소는 1) : " << endl;
+    cout << "시작 시 creature의 수 : 40" << endl;
+    cout << "Creature들이 살아갈 터전의 너비(터전은 정사각형) : 10" << endl;
+    cout << "Creature들이 움직일 수 있는 최대 칸 수 : 10" << endl;
+    cout << "Creature들의 최대 수명(버틸 수 있는 턴의 수) : 2" << endl;
+    cout << "Creature들이 낳을 수 있는 최대 자식의 수 : 2" << endl;
+    cout << "Creature들의 최대 체력(함정을 밟고 견딜 수 있는 횟수) : 1" << endl;
     cout << "---------------------------" << endl;
-    Simulator s = Simulator(n,t,x);
+    cout << "기본 설정 값을 바꾸시겠습니까? (y/n)" << endl;
+    cin >> a;
+    if (a == 'y') {
+        Simulator m = Simulator(n, t, x, b);
+        s = m;
+    }
+    cout << "----------------------------" << endl;
+    cout << "각 creature들의 status를 턴마다 출력하시겠습니까? (y/n)" << endl;
+    cin >> a;
+    if (a == 'y') b = true;
     s.print_status();
-    s.print_mean();
+    s.print_mean(b);
     Sleep(2000);
-    s.turn(10);
+    s.turn(10,b);
 }
 
 void print_queue(queue<pair<int,int>> q) {
