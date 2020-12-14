@@ -323,7 +323,7 @@ Simulator::Simulator(int n, int t, int b) {
     uniform_int_distribution<int> rf(1, f);             //랜덤으로 creature들 생성
     uniform_int_distribution<int> rl(1, l);
     uniform_int_distribution<int> rb(1, bb);
-    uniform_int_distribution<int> rs(1, s);
+    uniform_int_distribution<int> rs(0, s);
     uniform_int_distribution<int> rx(0, (b-1));
     uniform_int_distribution<int> ry(0, (b - 1));
     int x, y;
@@ -388,7 +388,7 @@ Simulator::Simulator(int n, int t, int b, bool p) {
     uniform_int_distribution<int> rf(1, this->f);
     uniform_int_distribution<int> rl(1, this->l);
     uniform_int_distribution<int> rb(1, this->bb);
-    uniform_int_distribution<int> rs(1, this->s);
+    uniform_int_distribution<int> rs(0, this->s);
     uniform_int_distribution<int> rx(0, (b - 1));
     uniform_int_distribution<int> ry(0, (b - 1));
     int x, y;
@@ -434,7 +434,7 @@ int main()
     cout << "총 함정의 개수는?" << endl;
     cin >> t;
     Simulator s = Simulator(n, t, x);
-    cout << "기본 설정 값(모든 status의 최소는 1) : " << endl;
+    cout << "기본 설정 값(모든 status의 최소는 1, 체력의 경우만 0) : " << endl;
     cout << "시작 시 creature의 수 : 40" << endl;
     cout << "Creature들이 살아갈 터전의 너비(터전은 정사각형) : 10" << endl;
     cout << "Creature들이 움직일 수 있는 최대 칸 수 : 10" << endl;
