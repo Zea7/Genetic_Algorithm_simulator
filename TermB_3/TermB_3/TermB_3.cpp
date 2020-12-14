@@ -445,6 +445,12 @@ int main()
     cout << "기본 설정 값을 바꾸시겠습니까? (y/n)" << endl;
     cin >> a;
     if (a == 'y') {
+        cout << "터전의 너비는?" << endl;
+        cin >> b;
+        cout << "총 함정의 개수는?" << endl;
+        cin >> t;
+        cout << "시작 시 creature의 수는?" << endl;
+        cin >> n;
         Simulator m = Simulator(n, t, x, b);
         s = m;
     }
