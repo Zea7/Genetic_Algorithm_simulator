@@ -429,7 +429,7 @@ void Simulator::make_up() {
 }
 int main()
 {
-    int n=40, t, x=10,b=false;
+    int n=40, t, x=10,b=false, turn;
     char a;
     cout << "총 함정의 개수는?" << endl;
     cin >> t;
@@ -457,11 +457,13 @@ int main()
     cout << "----------------------------" << endl;
     cout << "각 creature들의 status를 턴마다 출력하시겠습니까? (y/n)" << endl;
     cin >> a;
+    cout << "총 몇번의 턴을 보내시겠습니까?" << endl;
+    cin >> turn;
     if (a == 'y') b = true;
     s.print_status();
     s.print_mean(b);
     Sleep(2000);
-    s.turn(10,b);
+    s.turn(turn,b);
 }
 
 void print_queue(queue<pair<int,int>> q) {
