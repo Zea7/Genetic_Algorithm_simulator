@@ -89,28 +89,28 @@ public:
 };
 
 void Simulator::turn(int n,bool b) {           //한번한번의 시행마다 할 수행을 정의한 함수. recursion의 형태로 정의되어있다.
-    if (n == 0) return;
+    if (n == 0) return;                         //end state
     act++;    
     int qs = q.size();
 
-    for (int i = 0; i < qs;i++) {
+    for (int i = 0; i < qs;i++) {               //queue 내에 있는 좌표들에서만 move함수를 실행
         pair<int, int> r = q.front();
-        q.pop();
+        q.pop();                                //queue 내에 있는 좌표에서 move 실행 이후에는 해당 좌표가 필요 없으므로 queue에서 삭제(새로운 좌표가 queue에 들어감)
         int x = r.first, y = r.second;
         if (this->check[x][y] == true) continue;
-        this->move(x, y);
+        this->move(x, y);                               //move 실행
     }
-    this->make_up();
-    cout << "---------------------------" << endl;
+    this->make_up();                                    //move 이후 출력을 위하여 배열들 재정리
+    cout << "---------------------------" << endl;      //turn 마다 현재 상황 출력
     cout << this->act << "번째 시행 : " << endl;
     this->print_mean(b);
     this->print_status();
     cout << "---------------------------" << endl;
     Sleep(2000);
-    this->turn(--n,b);
+    this->turn(--n,b);                                  //recursion
 }
 
-void Simulator::print_status() {
+void Simulator::print_status() {                        //Board를 출력함으로써 creature들이 어떤 곳에 분포해 있는지 확인
     int number = 0;
     cout << this->lives << "개의 Creature" << endl;
     for (int i = 0; i < x; i++) {
@@ -121,24 +121,24 @@ void Simulator::print_status() {
         cout << endl;
     }
     cout << "Board 내의 Creature 수는 " << number << endl;
-    if (number != this->lives) {
-        cout << "오류가 있음" << endl;
+    if (number != this->lives) {                        //디버깅용. 내부 충돌로 인해 class내의 변수인 lives로 저장된 creature 수와 board내의 creature수가 맞지 않으면
+        cout << "오류가 있음" << endl;                  //시뮬레이션에 오류가 있다 판단, 시뮬레이션을 종료한다.
         exit(0);
     }
 }
 
-void Simulator::move(int x, int y) {
-    if (this->check[x][y] == true) return;
-    this->check[x][y] = true;
-    int n = this->board[x][y],a,x_h,y_h;
+void Simulator::move(int x, int y) {                    //creature들을 턴마다 움직이는 함수
+    if (this->check[x][y] == true) return;              //이미 move 함수를 실행한 칸일 경우, 스킵한다.
+    this->check[x][y] = true;                           //해당 칸이 move 함수를 실행했음을 저장해줌
+    int n = this->board[x][y],a,x_h,y_h;                //해당 칸에 몇개의 creature가 있는 지를 n에 저장, 각 creature들의 실시간 좌표를 x_h, y_h에 저장
     random_device rd;
     mt19937 gen(rd());
-    uniform_int_distribution<int> r(1, 4);
-    Creature* h = this->life[x][y].head;
-    for (int i = 1; i <= n; i++) {
-        bool living = true;
-        h->age++;
-        Creature* o = new Creature();
+    uniform_int_distribution<int> r(1, 4);              //위 아래 오른쪽 왼쪽으로 나누어 한칸씩 움직이도록 함.
+    Creature* h = this->life[x][y].head;                //creature list의 head를 가져옴
+    for (int i = 1; i <= n; i++) {                      
+        bool living = true;                             //해당 creature가 움직이는 도중 사망할지를 확인.
+        h->age++;                                       //move를 시작함과 동시에 trun이 시작한 것이므로, 나이를 먹음
+        Creature* o = new Creature();                   //move가 끝난 이후, 해당 creature가 갈 위치의 list에 creature의 정보를 저장하기 위해, creature의 정보를 복제.
         o->fly = h->fly;
         o->baby = h->baby;
         o->lifespan = h->lifespan;
@@ -146,12 +146,12 @@ void Simulator::move(int x, int y) {
         o->stamina = h->stamina;
         o->age = h->age;
         a = h->fly;
-        x_h = x;
+        x_h = x;                                        //시작 위치
         y_h = y;
-        bool p = false;
-        while (a != 0) {
-            switch (r(gen)) {
-            case 1:
+        bool p = false;                                 //움직인 위치가 board내인지 아닌지를 판단해줄 변수
+        while (a != 0) {                                //a에 최대 움직일 수 있는 칸을 저장, 0이 되기 전까지 1씩 줄이며 움직임
+            switch (r(gen)) {                           //r의 랜더머 결과를 통해 움직일 방향 결정
+            case 1:                                     //움직일 수 있는 곳이 board내일 경우, 움직여주고 a--를 해주며, p를 true로 바꾸어 움직였음을 확인
                 if ((x_h + 1) >= this->x) break;
                 x_h++;
                 a--;
@@ -160,7 +160,7 @@ void Simulator::move(int x, int y) {
             case 2:
                 if ((x_h - 1) < 0) break;
                 x_h--;
-                a--;
+                a--;    
                 p = true;
                 break;
             case 3:
@@ -176,21 +176,21 @@ void Simulator::move(int x, int y) {
                 p = true;
                 break;
             }
-            if (p == true) {
-                if (h->age == h->lifespan) {
+            if (p == true) {                                //움직이는 도중 해당 칸에 특이사항이 있을 경우 이를 실행
+                if (h->age == h->lifespan) {                //만약 나이가 최대수명에 도달할시, 사망 처리
                     this->lives--;
                     living = false;
                     break;
                 }
-                else if (trap[x_h][y_h] == true) {
+                else if (trap[x_h][y_h] == true) {          //함정에 걸릴 시, 체력을 깎고,
                     h->hp--;
-                    if (h->hp == 0) {
+                    if (h->hp == -1) {                       //체력이 다 떨어지면 사망처리
                         this->lives--;
                         living = false;
                         break;
                     }
                 }
-                if (life[x_h][y_h].length > 0&&((x_h!=x)||(y_h!=y))) {
+                if (life[x_h][y_h].length > 0&&((x_h!=x)||(y_h!=y))) { //움직이던 중, 해당 칸에 다른 creature가 있을 시, 자식을 생성(원래 있던 칸이 아닌경우)
                     this->lives += h->baby;
                     Creature* aa = this->life[x_h][y_h].head;
                     uniform_int_distribution<int> rf((aa->fly < h->fly ? aa->fly : h->fly), (aa->fly >= h->fly ? aa->fly : h->fly));
@@ -221,9 +221,9 @@ void Simulator::move(int x, int y) {
                         }
                         life[x_h][y_h].add(z);
                     }
-                    q.push(pair<int, int>(x_h, y_h));
+                    q.push(pair<int, int>(x_h, y_h));    //생성한 자식의 위치를 queue에 저장해줌
                 }
-                else if (life[x_h][y_h].length > 1 && (x_h == 0) && (y_h == 0)) {
+                else if (life[x_h][y_h].length > 1 && (x_h == 0) && (y_h == 0)) { //움직이던 중, 해당 칸에 다른 creature가 있을 시, 자식을 생성(원래 있던 칸인경우)
                     this->lives += h->baby;
                     Creature* aa = this->life[x_h][y_h].head->next;
                     uniform_int_distribution<int> rf((aa->fly < h->fly ? aa->fly : h->fly), (aa->fly >= h->fly ? aa->fly : h->fly));
@@ -260,26 +260,26 @@ void Simulator::move(int x, int y) {
             p = false;
         }
 
-        h = h->next;
-        if (living == true) {
-            life[x_h][y_h].add(o);
-            this->q.push(pair<int, int>(x_h, y_h));
+        h = h->next;    
+        if (living == true) {               //해당 creautre가 죽지 않았다면,
+            life[x_h][y_h].add(o);              //이동해준 좌표의 creature list에 해당 creature를 복제한 object를 저장
+            this->q.push(pair<int, int>(x_h, y_h));             //queue에 이동해준 좌표를 저장하고
         }
-        life[x][y].del(1);
+        life[x][y].del(1);                  //원래 있던 위치에서 해당 creature를 제거
 
     }
 }
 
-void Simulator::print_mean(bool t) {
+void Simulator::print_mean(bool t) {            //현재 살아있는 creature들의 status의 평균을 출력
     int f = 0, b = 0, l = 0, s = 0,x,y,qs=q.size();
     if (t) cout << "최대 움직일 수 있는 칸    최대 자식의 수     남은 수명      현재 남은 체력" << endl;
     for (int i = 0; i < qs;i++) {
-        pair<int, int> p = q.front();
+        pair<int, int> p = q.front();           //creature들이 존재하는 위치를 저장하는 queue에서 위치 정보를 하나씩 받아옴
         q.pop();
         x = p.first;
         y = p.second;
         q.push(pair<int, int>(x, y));
-        if (this->check[x][y] == true) {
+        if (this->check[x][y] == true) {        //이미 출력한 칸은 스킵
             continue;
         }
         check[x][y] = true;
@@ -295,7 +295,7 @@ void Simulator::print_mean(bool t) {
         }
     }
     printf("평균적으로 움직일 수 있는 칸의 수 : %.2f\n평균적으로 낳는 아이의 최대 수 : %.2f\n평균 수명 : %.2f\n평균 체력 : %.2f\n", ((double)f / lives), ((double)b / lives), ((double) l / lives), ((double)s /lives));
-    this->make_up();
+    this->make_up();                        //check를 썼으므로, 배열들을 재정리
 }
 
 Simulator::Simulator(int n, int t, int b) {
@@ -303,7 +303,7 @@ Simulator::Simulator(int n, int t, int b) {
     this->x = b;
     random_device rd;
     mt19937 gen(rd());
-
+    //배열들 초기화
     this->life = new Life * [b];
     for (int i = 0; i < b; i++) {
         this->life[i] = new Life[b];
@@ -320,7 +320,7 @@ Simulator::Simulator(int n, int t, int b) {
     for (int i = 0; i < b; i++) {
         this->trap[i] = new bool[b];
     }
-    uniform_int_distribution<int> rf(1, f);
+    uniform_int_distribution<int> rf(1, f);             //랜덤으로 creature들 생성
     uniform_int_distribution<int> rl(1, l);
     uniform_int_distribution<int> rb(1, bb);
     uniform_int_distribution<int> rs(1, s);
@@ -332,7 +332,7 @@ Simulator::Simulator(int n, int t, int b) {
             this->trap[i][j] = false;
         }
     }
-    for (int i = 0; i < t;) {
+    for (int i = 0; i < t;) {               //랜덤으로 함정 설치
         x = rx(gen);
         y = ry(gen);
         if (this->trap[x][y] == false) {
